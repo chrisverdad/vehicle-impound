@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from "vue";
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
 
 interface ImpoundRecord {
   id: number;
@@ -24,7 +24,8 @@ interface ImpoundRecord {
 const showForm = ref(false);
 const isEditing = ref(false);
 const editingId = ref<number | null>(null);
-const expandedId = ref<number | null>(null);
+const showViewModal = ref(false);
+const viewingId = ref<number | null>(null);
 
 const form = reactive<ImpoundRecord>({
   id: 0,
@@ -46,6 +47,9 @@ const form = reactive<ImpoundRecord>({
 });
 
 const impoundList = ref<ImpoundRecord[]>([]);
+const viewedRecord = computed(() =>
+  impoundList.value.find((r) => r.id === viewingId.value)
+);
 const vehicleTypes = [
   "Motorcycle",
   "Car",
@@ -75,8 +79,12 @@ const showToast = (message: string, type: "success" | "danger" = "success") => {
 
 // --- Keyboard Navigation ---
 const handleEscape = (e: KeyboardEvent) => {
-  if (e.key === "Escape" && showForm.value) {
-    closeForm();
+  if (e.key === "Escape") {
+    if (showViewModal.value) {
+      closeViewModal();
+    } else if (showForm.value) {
+      closeForm();
+    }
   }
 };
 
@@ -89,8 +97,9 @@ onUnmounted(() => {
 });
 
 // --- Logic ---
-const toggleRow = (id: number) => {
-  expandedId.value = expandedId.value === id ? null : id;
+const openViewModal = (id: number) => {
+  viewingId.value = id;
+  showViewModal.value = true;
 };
 
 const resetForm = () => {
@@ -124,6 +133,11 @@ const openForm = () => {
 const closeForm = () => {
   showForm.value = false;
   resetForm();
+};
+
+const closeViewModal = () => {
+  showViewModal.value = false;
+  viewingId.value = null;
 };
 
 const saveRecord = () => {
@@ -209,255 +223,40 @@ const deleteRecord = (id: number) => {
         </thead>
         <tbody>
           <template v-for="record in impoundList" :key="record.id">
-            <tr
-              @click="toggleRow(record.id)"
-              @keypress.enter="toggleRow(record.id)"
-              class="summary-row"
-              :class="{ 'is-active': expandedId === record.id }"
-              tabindex="0"
-              :aria-expanded="expandedId === record.id"
-              :aria-controls="`details-${record.id}`"
-            >
+             <tr class="summary-row">
               <td class="font-bold">{{ record.date }}</td>
               <td class="driver-summary">
                 <span class="avatar-icon" aria-hidden="true">👤</span>
                 {{ record.driverName }}
               </td>
               <td class="hide-mobile">{{ record.plateNumber }}</td>
-              <td class="text-right">
-                <span class="expand-icon" aria-hidden="true">
-                  <svg
-                    v-if="expandedId === record.id"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="18 15 12 9 6 15"></polyline>
-                  </svg>
-                  <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </span>
-                <span class="sr-only">{{
-                  expandedId === record.id
-                    ? "Collapse details"
-                    : "Expand details"
-                }}</span>
-              </td>
+               <td class="text-right">
+                 <button
+                   class="btn btn-view"
+                   @click.stop="openViewModal(record.id)"
+                   aria-label="View details"
+                 >
+                   <svg
+                     aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                   >
+                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                     <circle cx="12" cy="12" r="3"></circle>
+                   </svg>
+                   View
+                 </button>
+               </td>
             </tr>
 
-            <tr
-              v-if="expandedId === record.id"
-              :id="`details-${record.id}`"
-              class="details-row"
-            >
-              <td colspan="4">
-                <div class="details-content fade-in">
-                  <!-- RECEIPT FORMAT -->
-                  <article
-                    class="receipt-format"
-                    aria-label="Impounding Receipt Details"
-                  >
-                    <header class="receipt-header">
-                      <p>Republic of the Philippines</p>
-                      <p>NATIONAL POLICE COMMISSION</p>
-                      <p>PHILIPPINE NATIONAL POLICE</p>
-                      <p>BUTUAN CITY POLICE OFFICE</p>
-                      <p><strong>BUTUAN CITY POLICE STATION 1</strong></p>
-                      <p>Butuan City</p>
-                      <h2 class="receipt-title">IMPOUNDING RECEIPT</h2>
-                    </header>
 
-                    <div class="receipt-body">
-                      <div class="receipt-row">
-                        <span class="receipt-label">Date:</span>
-                        <span class="receipt-value underline">{{
-                          record.date
-                        }}</span>
-                      </div>
-
-                      <div class="receipt-grid">
-                        <div class="receipt-row">
-                          <span class="receipt-label">Type of Vehicle:</span>
-                          <span class="receipt-value underline">{{
-                            record.vehicleType
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Plate no.:</span>
-                          <span class="receipt-value underline">{{
-                            record.plateNumber
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Color:</span>
-                          <span class="receipt-value underline">{{
-                            record.color
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Driver's Name:</span>
-                          <span class="receipt-value underline">{{
-                            record.driverName
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Address:</span>
-                          <span class="receipt-value underline">{{
-                            record.driverAddress
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Registered Owner:</span>
-                          <span class="receipt-value underline">{{
-                            record.registeredOwner
-                          }}</span>
-                        </div>
-                        <div class="receipt-row">
-                          <span class="receipt-label">Address:</span>
-                          <span class="receipt-value underline">{{
-                            record.ownerAddress
-                          }}</span>
-                        </div>
-                      </div>
-
-                      <div class="receipt-violations">
-                        <span class="receipt-label" id="violations-heading"
-                          >VIOLATIONS:</span
-                        >
-                        <ol
-                          class="violation-list"
-                          aria-labelledby="violations-heading"
-                        >
-                          <li class="receipt-row">
-                            <span class="receipt-value underline">{{
-                              record.violation1
-                            }}</span>
-                          </li>
-                          <li v-if="record.violation2" class="receipt-row">
-                            <span class="receipt-value underline">{{
-                              record.violation2
-                            }}</span>
-                          </li>
-                        </ol>
-                      </div>
-
-                      <div class="receipt-narrative">
-                        <p>
-                          Subject MV/MC was apprehended by BCPO Station 1
-                          personnel for violation/s as stated above on
-                          <span class="underline-inline">{{
-                            record.apprehendedDate
-                          }}</span>
-                          at about
-                          <span class="underline-inline">{{
-                            record.apprehendedTime
-                          }}</span>
-                          along the vicinity of
-                          <span class="underline-inline">{{
-                            record.apprehendedLocation
-                          }}</span>
-                          and same was brought for safekeeping subject for the
-                          investigation/verification and proper disposition.
-                        </p>
-                        <p class="receipt-note">
-                          <strong>Note:</strong> Subject MV/MC shall only be
-                          released upon presentation of its pertinent original
-                          documents and agreement.
-                        </p>
-                      </div>
-
-                      <div class="receipt-signatures">
-                        <div class="sig-block">
-                          <p>Apprehending Officer:</p>
-                          <div class="sig-line">
-                            {{ record.apprehendingOfficer }}
-                          </div>
-                        </div>
-                        <div class="sig-block">
-                          <p>Conformed:</p>
-                          <div class="sig-line">{{ record.conformedBy }}</div>
-                          <p class="sig-sub">Owner/Driver/Possessor</p>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                  <!-- END RECEIPT FORMAT -->
-
-                  <footer class="detail-footer">
-                    <button
-                      class="btn btn-edit"
-                      @click.stop="editRecord(record)"
-                      aria-label="Edit this record"
-                    >
-                      <svg
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                        ></path>
-                        <path
-                          d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                        ></path>
-                      </svg>
-                      Edit
-                    </button>
-                    <button
-                      class="btn btn-delete"
-                      @click.stop="deleteRecord(record.id)"
-                      aria-label="Delete this record"
-                    >
-                      <svg
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path
-                          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                        ></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
-                      Delete
-                    </button>
-                  </footer>
-                </div>
-              </td>
-            </tr>
           </template>
           <tr v-if="impoundList.length === 0">
             <td colspan="4" class="no-data">
@@ -736,6 +535,186 @@ const deleteRecord = (id: number) => {
         </form>
       </div>
     </div>
+
+    <!-- VIEW MODAL -->
+    <div
+      v-if="showViewModal"
+      class="modal-overlay"
+      @click.self="closeViewModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="view-modal-title"
+    >
+      <div class="modal-content slide-up">
+        <header class="modal-header">
+          <h2 id="view-modal-title">Impounding Receipt Details</h2>
+          <button class="close-btn" @click="closeViewModal" aria-label="Close modal">
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <article
+            v-if="viewedRecord"
+            class="receipt-format"
+            aria-label="Impounding Receipt Details"
+          >
+            <header class="receipt-header">
+              <p>Republic of the Philippines</p>
+              <p>NATIONAL POLICE COMMISSION</p>
+              <p>PHILIPPINE NATIONAL POLICE</p>
+              <p>BUTUAN CITY POLICE OFFICE</p>
+              <p><strong>BUTUAN CITY POLICE STATION 1</strong></p>
+              <p>Butuan City</p>
+              <h2 class="receipt-title">IMPOUNDING RECEIPT</h2>
+            </header>
+
+            <div class="receipt-body">
+              <div class="receipt-row">
+                <span class="receipt-label">Date:</span>
+                <span class="receipt-value underline">{{ viewedRecord.date }}</span>
+              </div>
+
+              <div class="receipt-grid">
+                <div class="receipt-row">
+                  <span class="receipt-label">Type of Vehicle:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.vehicleType }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Plate no.:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.plateNumber }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Color:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.color }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Driver's Name:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.driverName }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Address:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.driverAddress }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Registered Owner:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.registeredOwner }}</span>
+                </div>
+                <div class="receipt-row">
+                  <span class="receipt-label">Address:</span>
+                  <span class="receipt-value underline">{{ viewedRecord.ownerAddress }}</span>
+                </div>
+              </div>
+
+              <div class="receipt-violations">
+                <span class="receipt-label" id="view-violations-heading">VIOLATIONS:</span>
+                <ol class="violation-list" aria-labelledby="view-violations-heading">
+                  <li class="receipt-row">
+                    <span class="receipt-value underline">{{ viewedRecord.violation1 }}</span>
+                  </li>
+                  <li v-if="viewedRecord.violation2" class="receipt-row">
+                    <span class="receipt-value underline">{{ viewedRecord.violation2 }}</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div class="receipt-narrative">
+                <p>
+                  Subject MV/MC was apprehended by BCPO Station 1 personnel for violation/s as stated above on
+                  <span class="underline-inline">{{ viewedRecord.apprehendedDate }}</span>
+                  at about
+                  <span class="underline-inline">{{ viewedRecord.apprehendedTime }}</span>
+                  along the vicinity of
+                  <span class="underline-inline">{{ viewedRecord.apprehendedLocation }}</span>
+                  and same was brought for safekeeping subject for the investigation/verification and proper disposition.
+                </p>
+                <p class="receipt-note">
+                  <strong>Note:</strong> Subject MV/MC shall only be released upon presentation of its pertinent original documents and agreement.
+                </p>
+              </div>
+
+              <div class="receipt-signatures">
+                <div class="sig-block">
+                  <p>Apprehending Officer:</p>
+                  <div class="sig-line">{{ viewedRecord.apprehendingOfficer }}</div>
+                </div>
+                <div class="sig-block">
+                  <p>Conformed:</p>
+                  <div class="sig-line">{{ viewedRecord.conformedBy }}</div>
+                  <p class="sig-sub">Owner/Driver/Possessor</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            v-if="viewedRecord"
+            class="btn btn-edit"
+            @click="editRecord(viewedRecord); closeViewModal()"
+            aria-label="Edit this record"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit
+          </button>
+          <button
+            v-if="viewedRecord"
+            class="btn btn-delete"
+            @click="deleteRecord(viewedRecord.id); closeViewModal()"
+            aria-label="Delete this record"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            Delete
+          </button>
+          <button class="btn btn-secondary" @click="closeViewModal">Close</button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -840,6 +819,16 @@ const deleteRecord = (id: number) => {
 
 .btn-delete:hover {
   background-color: #fee2e2;
+}
+
+.btn-view {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-color: var(--color-primary-200);
+}
+
+.btn-view:hover {
+  background-color: var(--color-primary-100);
 }
 
 .mt-3 {
@@ -1243,6 +1232,11 @@ const deleteRecord = (id: number) => {
   padding: 1.5rem;
 }
 
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
 .form-section {
   margin-bottom: 1.5rem;
   background: var(--bg-body);
@@ -1320,6 +1314,18 @@ fieldset {
 }
 
 .form-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-surface);
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.modal-footer {
   margin-top: 2rem;
   display: flex;
   justify-content: flex-end;
