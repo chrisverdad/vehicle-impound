@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
+import { useImpoundStore } from '@/stores/impoundStore';
 
 interface ImpoundRecord {
   id: number;
@@ -46,7 +47,11 @@ const form = reactive<ImpoundRecord>({
   conformedBy: "",
 });
 
-const impoundList = ref<ImpoundRecord[]>([]);
+const store = useImpoundStore();
+const emit = defineEmits<{
+  (e: 'navigate-to-stats'): void
+}>();
+const impoundList = store.impoundList;
 const viewedRecord = computed(() =>
   impoundList.value.find((r) => r.id === viewingId.value)
 );
@@ -142,15 +147,14 @@ const closeViewModal = () => {
 
 const saveRecord = () => {
   if (isEditing.value && editingId.value !== null) {
-    const index = impoundList.value.findIndex((r) => r.id === editingId.value);
-    if (index !== -1) impoundList.value[index] = { ...form };
+    store.updateRecord(editingId.value, { ...form, id: editingId.value });
     showToast("Record updated successfully.");
+    viewingId.value = editingId.value;
+    showViewModal.value = true;
   } else {
-    const newId =
-      impoundList.value.length > 0
-        ? Math.max(...impoundList.value.map((r) => r.id)) + 1
-        : 1;
-    impoundList.value.push({ ...form, id: newId });
+    const newId = store.addRecord({ ...form });
+    viewingId.value = newId;
+    showViewModal.value = true;
     showToast("New record added successfully.");
   }
   closeForm();
