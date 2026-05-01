@@ -25,6 +25,8 @@
           </div>
           <div class="form-group"><label>PLATE NUMBER</label><input v-model="form.plate" placeholder="e.g. ABC 1234" style="text-transform:uppercase" /></div>
           <div class="form-group"><label>COLOR</label><input v-model="form.color" placeholder="e.g. Red / Black" /></div>
+          <div class="form-group"><label>ENGINE NUMBER</label><input v-model="form.engineNo" placeholder="e.g. 4AF1234567" style="text-transform:uppercase" /></div>
+          <div class="form-group"><label>CHASSIS NUMBER</label><input v-model="form.chassisNo" placeholder="e.g. MHF1234567" style="text-transform:uppercase" /></div>
           <div class="form-group"><label>DATE APPREHENDED</label><input type="date" v-model="form.date" /></div>
           <div class="form-group"><label>TIME</label><input type="time" v-model="form.time" /></div>
           <div class="form-group"><label>LOCATION (ALONG VICINITY OF)</label><input v-model="form.location" placeholder="e.g. J.C. Aquino Ave." /></div>
@@ -59,7 +61,8 @@
               <option v-for="v in violations" :key="v">{{ v }}</option>
             </select>
           </div>
-          <div class="form-group"><label>APPREHENDING OFFICER</label><input v-model="form.officer" placeholder="Full Name of Officer" /></div>
+          <div class="form-group"><label>APPREHENDING OFFICER 1</label><input v-model="form.officer" placeholder="Full Name of Officer" /></div>
+          <div class="form-group"><label>APPREHENDING OFFICER 2</label><input v-model="form.officer2" placeholder="Full Name of Officer (Optional)" /></div>
         </div>
       </div>
       <div class="card">
@@ -132,7 +135,7 @@
           <div class="receipt-body">Subject MV/MC was apprehended by BCPO Station 1 personnel for violation/s as stated above on <u>&nbsp;{{ fmtDate(form.date) }}&nbsp;</u> at about <u>&nbsp;{{ fmtTime(form.time) }}&nbsp;</u> along the vicinity of <u>&nbsp;{{ form.location }}&nbsp;</u> and same was brought for safekeeping subject for the investigation/verification and proper disposition.</div>
           <div class="receipt-note">Note: Subject MV/MC shall only be released upon presentation of its pertinent original documents and agreement.</div>
           <div class="receipt-sigs">
-            <div class="sig-title">Apprehending Officer:</div>
+            <div class="sig-title">Apprehending Officer/s:</div>
             <div class="sig-group">
               <div class="conformed">
                 <div style="font-size:12.5px;margin-bottom:4px">Conformed:</div>
@@ -140,9 +143,17 @@
                   <div style="width:200px;border-top:1px solid #000;padding-top:4px;font-size:12px;text-align:center;margin-top:40px">Owner/Driver/Possessor</div>
                 </div>
               </div>
-              <div class="sig-line-block">
-                <div class="sig-underline">{{ form.officer }}</div>
-                <div class="sig-extra-line">&nbsp;</div>
+              <div style="display:flex;gap:20px;flex-wrap:wrap">
+                <div class="sig-line-block">
+                  <div style="font-weight:bold;font-size:13px;text-align:center;margin-top:40px;margin-bottom:4px">{{ form.officer }}</div>
+                  <div style="border-top:1px solid #000;width:100%"></div>
+                  <div style="font-size:11px;text-align:center;color:#888;margin-top:3px">Apprehending Officer</div>
+                </div>
+                <div class="sig-line-block">
+                  <div style="font-weight:bold;font-size:13px;text-align:center;margin-top:40px;margin-bottom:4px">{{ form.officer2 }}</div>
+                  <div style="border-top:1px solid #000;width:100%"></div>
+                  <div style="font-size:11px;text-align:center;color:#888;margin-top:3px">Apprehending Officer</div>
+                </div>
               </div>
             </div>
           </div>
@@ -160,7 +171,7 @@ const { page, saveRecord } = useImpoundStore()
 
 const violations = ['No Helmet','No License','Expired Registration','No Registration','Reckless Driving','Illegal Parking','DUI/DWI','Overloading','Obstruction of Traffic','Illegal Modification','Hit and Run','Other Traffic Violation']
 
-const blankForm = () => ({ type:'',plate:'',color:'',date:new Date().toISOString().split('T')[0],time:'',location:'',driver:'',driverAddress:'',owner:'',ownerAddress:'',vio1:'',vio2:'',officer:'',remarks:'' })
+const blankForm = () => ({ type:'',plate:'',color:'',engineNo:'',chassisNo:'',date:new Date().toISOString().split('T')[0],time:'',location:'',driver:'',driverAddress:'',owner:'',ownerAddress:'',vio1:'',vio2:'',officer:'',officer2:'',remarks:'' })
 
 const form        = ref(blankForm())
 const showReceipt = ref(false)

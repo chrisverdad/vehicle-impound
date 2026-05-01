@@ -19,6 +19,8 @@
           </div>
           <div class="form-group"><label>PLATE NUMBER</label><input v-model="form.plate" style="text-transform:uppercase" /></div>
           <div class="form-group"><label>COLOR</label><input v-model="form.color" /></div>
+          <div class="form-group"><label>ENGINE NUMBER</label><input v-model="form.engineNo" style="text-transform:uppercase" /></div>
+          <div class="form-group"><label>CHASSIS NUMBER</label><input v-model="form.chassisNo" style="text-transform:uppercase" /></div>
           <div class="form-group"><label>DATE APPREHENDED</label><input type="date" v-model="form.date" /></div>
           <div class="form-group"><label>TIME</label><input type="time" v-model="form.time" /></div>
           <div class="form-group"><label>LOCATION</label><input v-model="form.location" /></div>
@@ -46,7 +48,8 @@
               <option v-for="v in violations" :key="v">{{ v }}</option>
             </select>
           </div>
-          <div class="form-group"><label>OFFICER</label><input v-model="form.officer" /></div>
+          <div class="form-group"><label>OFFICER 1</label><input v-model="form.officer" /></div>
+          <div class="form-group"><label>OFFICER 2 (Optional)</label><input v-model="form.officer2" /></div>
           <div class="form-group"><label>REMARKS</label><input v-model="form.remarks" /></div>
         </div>
       </div>

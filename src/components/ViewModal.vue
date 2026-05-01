@@ -56,8 +56,14 @@
                   </div>
                 </div>
                 <div class="sig-line-block">
-                  <div class="sig-underline">{{ selectedRecord.officer }}</div>
-                  <div class="sig-extra-line">&nbsp;</div>
+                  <div style="font-weight:bold;font-size:13px;text-align:center;margin-top:40px;margin-bottom:4px">{{ selectedRecord.officer }}</div>
+                  <div style="border-top:1px solid #000;width:100%"></div>
+                  <div style="font-size:11px;text-align:center;color:#888;margin-top:3px">Apprehending Officer</div>
+                </div>
+                <div class="sig-line-block" v-if="selectedRecord.officer2">
+                  <div style="font-weight:bold;font-size:13px;text-align:center;margin-top:40px;margin-bottom:4px">{{ selectedRecord.officer2 }}</div>
+                  <div style="border-top:1px solid #000;width:100%"></div>
+                  <div style="font-size:11px;text-align:center;color:#888;margin-top:3px">Apprehending Officer</div>
                 </div>
               </div>
             </div>
