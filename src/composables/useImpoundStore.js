@@ -39,6 +39,18 @@ const showEditModal = ref(false)
 const editTarget = ref(null)
 const showDeleteDialog = ref(false)
 const deleteTarget = ref(null)
+const showDetailsModal = ref(false)
+const detailRecord = ref(null)
+
+// ── Toast ──
+let _toastTimer = null
+const toast = ref({ show: false, type: 'success', title: '', message: '', duration: 3500 })
+function showToast(type, title, message, duration = 3500) {
+  if (_toastTimer) clearTimeout(_toastTimer)
+  toast.value = { show: true, type, title, message, duration }
+  _toastTimer = setTimeout(() => { toast.value.show = false }, duration)
+}
+function hideToast() { toast.value.show = false; if (_toastTimer) clearTimeout(_toastTimer) }
 
 // ── Auto-persist records to localStorage ──
 function persistRecords() {
@@ -98,6 +110,11 @@ export function useImpoundStore() {
     showModal.value = true
   }
 
+  function viewDetails(r) {
+    detailRecord.value = r
+    showDetailsModal.value = true
+  }
+
   function releaseVehicle(r) {
     releaseTarget.value = r
     releaseMode.value = 'release'
@@ -109,6 +126,7 @@ export function useImpoundStore() {
       const rec = records.value.find(x => x.id === releaseTarget.value.id)
       if (rec) rec.status = 'Released'
       persistRecords()
+      showToast('success', 'Vehicle Released', `${releaseTarget.value.plate} has been released successfully.`)
     }
     showReleaseDialog.value = false
     releaseTarget.value = null
@@ -119,6 +137,7 @@ export function useImpoundStore() {
     const rec = { ...form, id: nextId.value++, status: 'Impounded' }
     records.value.push(rec)
     persistRecords()
+    showToast('success', 'Record Saved', `Vehicle ${rec.plate || ''} has been impounded and saved.`)
     return rec
   }
 
@@ -133,6 +152,7 @@ export function useImpoundStore() {
       const rec = records.value.find(x => x.id === releaseTarget.value.id)
       if (rec) rec.status = 'Impounded'
       persistRecords()
+      showToast('warning', 'Vehicle Re-Impounded', `${releaseTarget.value.plate} status changed to Impounded.`)
     }
     showReleaseDialog.value = false
     releaseTarget.value = null
@@ -150,6 +170,7 @@ export function useImpoundStore() {
     if (idx !== -1) {
       records.value[idx] = { ...updated }
       persistRecords()
+      showToast('info', 'Record Updated', `${updated.plate || 'Record'} has been updated successfully.`)
     }
     showEditModal.value = false
     editTarget.value = null
@@ -164,8 +185,10 @@ export function useImpoundStore() {
 
   function doConfirmedDelete() {
     if (deleteTarget.value) {
+      const plate = deleteTarget.value.plate
       records.value = records.value.filter(x => x.id !== deleteTarget.value.id)
       persistRecords()
+      showToast('danger', 'Record Deleted', `Vehicle ${plate || ''} has been permanently deleted.`)
     }
     showDeleteDialog.value = false
     deleteTarget.value = null
@@ -188,9 +211,11 @@ export function useImpoundStore() {
     showReleaseDialog, releaseTarget, releaseMode,
     showEditModal, editTarget,
     showDeleteDialog, deleteTarget,
+    showDetailsModal, detailRecord,
+    toast, hideToast,
     todayDate, todayStr, totalImpounded, totalReleased,
     activeImpounded, todayCount,
-    login, confirmLogout, viewRecord, releaseVehicle, doConfirmedRelease,
+    login, confirmLogout, viewRecord, viewDetails, releaseVehicle, doConfirmedRelease,
     impoundVehicle, doConfirmedImpound,
     editRecord, updateRecord, deleteRecord, doConfirmedDelete,
     saveRecord, downloadCSV,

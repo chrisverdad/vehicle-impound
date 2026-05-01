@@ -57,6 +57,7 @@
               <td><span class="badge" :class="r.status==='Impounded'?'badge-impounded':r.status==='Released'?'badge-released':'badge-pending'">{{ r.status }}</span></td>
               <td>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <button class="btn btn-primary btn-sm" @click="viewDetails(r)">View Details</button>
                   <button class="btn btn-info btn-sm" @click="viewRecord(r)">View Receipt</button>
                   <button class="btn btn-secondary btn-sm" @click="editRecord(r)">Edit</button>
                   <button class="btn btn-success btn-sm" v-if="r.status === 'Impounded'" @click="releaseVehicle(r)">Release</button>
@@ -106,7 +107,7 @@ import { useImpoundStore, fmtDate } from '../../composables/useImpoundStore.js'
 
 Chart.register(...registerables)
 
-const { page, records, totalImpounded, totalReleased, activeImpounded, downloadCSV, viewRecord, editRecord, deleteRecord, releaseVehicle, impoundVehicle } = useImpoundStore()
+const { page, records, totalImpounded, totalReleased, activeImpounded, downloadCSV, viewRecord, viewDetails, editRecord, deleteRecord, releaseVehicle, impoundVehicle } = useImpoundStore()
 
 const tab = ref('overview')
 const searchQ = ref(''); const filterStatus = ref(''); const filterType = ref('')

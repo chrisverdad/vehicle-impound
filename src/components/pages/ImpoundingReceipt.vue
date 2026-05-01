@@ -61,8 +61,7 @@
               <option v-for="v in violations" :key="v">{{ v }}</option>
             </select>
           </div>
-          <div class="form-group"><label>APPREHENDING OFFICER 1</label><input v-model="form.officer" placeholder="Full Name of Officer" /></div>
-          <div class="form-group"><label>APPREHENDING OFFICER 2</label><input v-model="form.officer2" placeholder="Full Name of Officer (Optional)" /></div>
+          <div class="form-group full"><OfficerMultiSelect :officer1="form.officer" :officer2="form.officer2" @update:officer1="form.officer=$event" @update:officer2="form.officer2=$event" /></div>
         </div>
       </div>
       <div class="card">
@@ -166,6 +165,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useImpoundStore, fmtDate, fmtTime } from '../../composables/useImpoundStore.js'
+import OfficerMultiSelect from '../OfficerMultiSelect.vue'
 
 const { page, saveRecord } = useImpoundStore()
 
