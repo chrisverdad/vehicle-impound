@@ -55,6 +55,13 @@
           </div>
         </div>
 
+        <!-- Vehicle Photo -->
+        <div v-if="detailRecord.photo" style="margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;padding:12px 16px 8px;background:rgba(201,168,76,0.06)">📷 VEHICLE PHOTO</div>
+          <div style="background:rgba(0,0,0,0.3);padding:12px;display:flex;justify-content:center">
+            <img :src="detailRecord.photo" alt="Vehicle photo" style="max-width:100%;max-height:360px;border-radius:8px;object-fit:contain;cursor:pointer" @click="openFullPhoto" />
+          </div>
+        </div>
         <!-- Remarks -->
         <div v-if="detailRecord.remarks" style="background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:10px;padding:14px">
           <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px">📝 REMARKS</div>
@@ -72,6 +79,13 @@
 <script setup>
 import { useImpoundStore, fmtDate, fmtTime } from '../composables/useImpoundStore.js'
 const { showDetailsModal, detailRecord } = useImpoundStore()
+
+function openFullPhoto() {
+  if (detailRecord.value?.photo) {
+    const w = window.open()
+    w.document.write(`<html><head><title>Vehicle Photo</title><style>body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}</style></head><body><img src="${detailRecord.value.photo}" /></body></html>`)
+  }
+}
 </script>
 
 <style scoped>

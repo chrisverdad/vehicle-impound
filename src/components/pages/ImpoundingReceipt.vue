@@ -30,6 +30,24 @@
           <div class="form-group"><label>DATE APPREHENDED</label><input type="date" v-model="form.date" /></div>
           <div class="form-group"><label>TIME</label><input type="time" v-model="form.time" /></div>
           <div class="form-group"><label>LOCATION (ALONG VICINITY OF)</label><input v-model="form.location" placeholder="e.g. J.C. Aquino Ave." /></div>
+          <div class="form-group full">
+            <label>VEHICLE PHOTO <span style="color:var(--gray);font-weight:400;font-size:11px">(Optional)</span></label>
+            <div class="photo-upload-area" @click="$refs.photoInput.click()" @dragover.prevent @drop.prevent="onPhotoDrop">
+              <input ref="photoInput" type="file" accept="image/*" style="display:none" @change="onPhotoSelect" />
+              <div v-if="!form.photo" class="photo-placeholder">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.4">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Click or drag photo here</span>
+              </div>
+              <div v-else class="photo-preview-wrap">
+                <img :src="form.photo" alt="Vehicle photo" class="photo-preview-img" />
+                <button class="photo-remove-btn" @click.stop="form.photo = ''" title="Remove photo">✕</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -171,7 +189,37 @@ const { page, saveRecord } = useImpoundStore()
 
 const violations = ['No Helmet','No License','Expired Registration','No Registration','Reckless Driving','Illegal Parking','DUI/DWI','Overloading','Obstruction of Traffic','Illegal Modification','Hit and Run','Other Traffic Violation']
 
-const blankForm = () => ({ type:'',plate:'',color:'',engineNo:'',chassisNo:'',date:new Date().toISOString().split('T')[0],time:'',location:'',driver:'',driverAddress:'',owner:'',ownerAddress:'',vio1:'',vio2:'',officer:'',officer2:'',remarks:'' })
+const blankForm = () => ({ type:'',plate:'',color:'',engineNo:'',chassisNo:'',date:new Date().toISOString().split('T')[0],time:'',location:'',photo:'',driver:'',driverAddress:'',owner:'',ownerAddress:'',vio1:'',vio2:'',officer:'',officer2:'',remarks:'' })
+
+function onPhotoSelect(e) {
+  const file = e.target.files?.[0]
+  if (file) readPhotoFile(file)
+}
+function onPhotoDrop(e) {
+  const file = e.dataTransfer.files?.[0]
+  if (file && file.type.startsWith('image/')) readPhotoFile(file)
+}
+function readPhotoFile(file) {
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    // Resize to max 800px to keep localStorage manageable
+    const img = new Image()
+    img.onload = () => {
+      const max = 800
+      let w = img.width, h = img.height
+      if (w > max || h > max) {
+        if (w > h) { h = Math.round(h * max / w); w = max }
+        else { w = Math.round(w * max / h); h = max }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      form.value.photo = canvas.toDataURL('image/jpeg', 0.7)
+    }
+    img.src = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
 
 const form        = ref(blankForm())
 const showReceipt = ref(false)
