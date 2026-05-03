@@ -69,6 +69,26 @@
           <div class="form-group full"><OfficerMultiSelect :officer1="form.officer" :officer2="form.officer2" @update:officer1="form.officer=$event" @update:officer2="form.officer2=$event" /></div>
           <div class="form-group"><label>REMARKS</label><input v-model="form.remarks" /></div>
         </div>
+
+        <!-- Authorization Password -->
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border2)">
+          <div v-if="error" style="background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.4);border-radius:8px;padding:10px 14px;font-size:12px;color:#ef5350;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+            <span>⚠️</span><span>Incorrect password. Please try again.</span>
+          </div>
+          <div class="form-group">
+            <label>AUTHORIZATION PASSWORD</label>
+            <div style="position:relative">
+              <input
+                :type="showPw ? 'text' : 'password'"
+                v-model="authPassword"
+                placeholder="Enter password to save changes"
+                @keydown.enter="doUpdate"
+                ref="pwInput"
+              />
+              <button @click="showPw = !showPw" type="button" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray);padding:4px"><svg v-if="showPw" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style="padding:16px 24px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border2)">
@@ -92,9 +112,18 @@ const { showEditModal, editTarget, updateRecord } = useImpoundStore()
 const violations = ['No Helmet','No License','Expired Registration','No Registration','Reckless Driving','Illegal Parking','DUI/DWI','Overloading','Obstruction of Traffic','Illegal Modification','Hit and Run','Other Traffic Violation']
 
 const form = ref({})
+const authPassword = ref('')
+const showPw = ref(false)
+const error = ref(false)
+const pwInput = ref(null)
 
 watch(editTarget, (val) => {
-  if (val) form.value = { ...val }
+  if (val) {
+    form.value = { ...val }
+    authPassword.value = ''
+    error.value = false
+    showPw.value = false
+  }
 })
 
 function doUpdate() {
@@ -102,7 +131,15 @@ function doUpdate() {
     alert('Please fill in required fields: Vehicle Type, Plate Number, and Driver Name.')
     return
   }
+  if (authPassword.value !== 'bcps1') {
+    error.value = true
+    authPassword.value = ''
+    setTimeout(() => error.value = false, 3500)
+    return
+  }
   updateRecord(form.value)
+  authPassword.value = ''
+  error.value = false
 }
 
 function onPhotoSelect(e) {
