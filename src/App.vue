@@ -9,6 +9,7 @@
       <main>
         <Dashboard    v-if="page === 'dashboard'" />
         <ImpoundingReceipt v-if="page === 'receipt'" :print-area="recordPrintArea" />
+        <ImpoundRecords v-if="page === 'records'" />
         <Reports      v-if="page === 'reports'" />
         <UserManual   v-if="page === 'manual'" />
         <BackupRestore v-if="page === 'backup'" />
@@ -34,6 +35,7 @@ import NavBar          from './components/NavBar.vue'
 import MobileNav       from './components/MobileNav.vue'
 import Dashboard       from './components/pages/Dashboard.vue'
 import ImpoundingReceipt from './components/pages/ImpoundingReceipt.vue'
+import ImpoundRecords  from './components/pages/ImpoundRecords.vue'
 import Reports         from './components/pages/Reports.vue'
 import UserManual      from './components/pages/UserManual.vue'
 import BackupRestore   from './components/pages/BackupRestore.vue'
